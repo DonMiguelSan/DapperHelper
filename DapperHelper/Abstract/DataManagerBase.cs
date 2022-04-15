@@ -10,21 +10,13 @@ namespace  DapperHelper.DataAccess.Abstract
 {
     public abstract class DataManagerBase<T> : IDataManager<T> where T : IDbTableModel
     {
-        protected string spCreate;
-
-        protected string spReadAll;
-
-        protected string spUpdate;
-
-        protected string spSearch;
-
-        public virtual List<T> ReadAll()
+        public virtual List<T> ReadAll(string storedProcedure)
         {
             try
             {
                 SqlDataAccess sql = new SqlDataAccess();
 
-                return sql.LoadData<T, dynamic>(spReadAll, null, SqlConstants.dataBase);
+                return sql.LoadData<T, dynamic>(storedProcedure, null, SqlConstants.dataBase);
             }
             catch (Exception ex)
             {
@@ -33,14 +25,14 @@ namespace  DapperHelper.DataAccess.Abstract
             }
         }
 
-        public virtual void Create(T model)
+        public virtual void Create(T model, string storedProcedure)
         {
             SqlDataAccess sqlDataAccess = new SqlDataAccess();
 
-            sqlDataAccess.SaveData(spCreate, model, SqlConstants.dataBase);
+            sqlDataAccess.SaveData(storedProcedure, model, SqlConstants.dataBase);
         }
 
-        public virtual List<T> Search(int id)
+        public virtual List<T> Search(int id, string storedProcedure)
         {
             try
             {
@@ -48,7 +40,7 @@ namespace  DapperHelper.DataAccess.Abstract
 
                 var p = new { id };
 
-                var output = sql.LoadData<T, dynamic>(spSearch, p, SqlConstants.dataBase);
+                var output = sql.LoadData<T, dynamic>(storedProcedure, p, SqlConstants.dataBase);
 
                 return output;
             }
@@ -58,25 +50,9 @@ namespace  DapperHelper.DataAccess.Abstract
             }
         }
 
-        public virtual List<T> Search(object storedProcedurePar)
-        {
-            try
-            {
-                SqlDataAccess sql = new SqlDataAccess();
-
-                var output = sql.LoadData<T, dynamic>(spSearch, storedProcedurePar, SqlConstants.dataBase);
-
-                return output;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-
-        }
 
 
-        public virtual void Update(int id, T updatedModel)
+        public virtual void Update(int id, T updatedModel, string storedProcedure)
         {
             try
             {
@@ -84,7 +60,7 @@ namespace  DapperHelper.DataAccess.Abstract
 
                 var parameters = updatedModel.GetParameterObject(id, new List<Type> { typeof(UpdatableParAttribute), typeof(TableIdentityAttribute) });
 
-                _ = sql.ExecuteStoreProcedure<T, dynamic>(spUpdate, parameters, SqlConstants.dataBase);
+                _ = sql.ExecuteStoreProcedure<T, dynamic>(storedProcedure, parameters, SqlConstants.dataBase);
 
             }
             catch (Exception ex)
