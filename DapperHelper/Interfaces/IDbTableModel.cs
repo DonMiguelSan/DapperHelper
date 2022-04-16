@@ -19,8 +19,8 @@ namespace DapperHelper.Interfaces
         DateTime CreatedOn { get; set; }
 
         /// <summary>
-        /// Modified on Date and time
+        /// Uopdated on Date and time
         /// </summary>
-        DateTime ModifiedOn { get; set; }
+        DateTime UpdatedOn { get; set; }
     }
 }
