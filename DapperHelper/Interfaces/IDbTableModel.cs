@@ -14,11 +14,6 @@ namespace DapperHelper.Interfaces
         int Id { get; set; }
 
         /// <summary>
-        /// Description about the object 
-        /// </summary>
-        string Description { get; set; }
-
-        /// <summary>
         /// Created on Date and time -> Manage by the Database
         /// </summary>
         DateTime CreatedOn { get; set; }
