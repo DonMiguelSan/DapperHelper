@@ -8,8 +8,21 @@ using System.Reflection;
 
 namespace DapperHelper.Tools.ExtensionMethods
 {
+    /// <summary>
+    /// Extension methods for data table models 
+    /// </summary>
     public static class DbTableExtension
     {
+        /// <summary>
+        /// Gets an object containig the parameters dynamically that were marked with the selected
+        /// attributes <see cref="Attribute"/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="tableModel"></param>
+        /// <param name="attributes"></param>
+        /// <returns>
+        /// An <see cref="object"/> containig the parameters marked with <paramref name="attributes"/>
+        /// </returns>
         public static object GetParameterObject<T>(this IDbTableModel tableModel, T attributes) where T : List<Type>
         {
             var parameterObject = new ExpandoObject() as IDictionary<string, object>;
@@ -30,6 +43,16 @@ namespace DapperHelper.Tools.ExtensionMethods
             return parameterObject;
         }
 
+        /// <summary>
+        /// Geenrates a dynamical <see cref="object"/> containing the <paramref name="attributes"/> extracted from <paramref name="tableModel"/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="tableModel"></param>
+        /// <param name="id"></param>
+        /// <param name="attributes"></param>
+        /// <returns>
+        /// see cref="object"/> containing the <paramref name="attributes"/> and <paramref name="id"/> as primary identity key
+        /// </returns>
         public static object GetParameterObject<T>(this IDbTableModel tableModel, int id, T attributes) where T : List<Type>
         {
             PropertyInfo idPropertyInfo = tableModel.GetType().GetProperties()
@@ -40,7 +63,17 @@ namespace DapperHelper.Tools.ExtensionMethods
             return tableModel.GetParameterObject(attributes);
         }
 
-        public static object GetParameterObject<T, U>(this IDbTableModel tableModel, int id, T attributes)
+        /// <summary>
+        /// Geenrates a dynamical <see cref="object"/> containing the <paramref name="attributes"/> extracted from <paramref name="tableModel"/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="tableModel"></param>
+        /// <param name="id"></param>
+        /// <param name="attributes"></param>
+        /// <returns>
+        /// see cref="object"/> containing the <paramref name="attributes"/> and <paramref name="id"/> as primary identity key
+        /// </returns>
+        public static object GetParameterObject<T, U>(this U tableModel, int id, T attributes)
             where T : List<Type>
             where U : IDbTableModel, new()
         {
