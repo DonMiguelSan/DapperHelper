@@ -36,7 +36,10 @@ namespace DapperHelper.Tools.ExtensionMethods
 
                     foreach (PropertyInfo proppertyWithAttribute in propertiesWithAttribute)
                     {
-                        parameterObject.Add(proppertyWithAttribute.Name, tableModel.GetType().GetProperty(proppertyWithAttribute.Name).GetValue(tableModel));
+                        if (parameterObject.TryGetValue(proppertyWithAttribute.Name, out _) == false)
+                        {
+                            parameterObject.Add(proppertyWithAttribute.Name, tableModel.GetType().GetProperty(proppertyWithAttribute.Name).GetValue(tableModel));
+                        }
                     }
                 }
             }
@@ -85,6 +88,22 @@ namespace DapperHelper.Tools.ExtensionMethods
             return tableModel.GetParameterObject(attributes);
         }
 
+        public static string GetStringForQuery<T>(this IDbTableModel tableModel, T attributes, bool isValueString = false)
+            where T : List<Type>
+        {
+            object filteredAttrObject = tableModel.GetParameterObject(attributes);
+
+            string output = isValueString?"Values(": $"{nameof(tableModel)}(";
+
+            var properties = ((IDictionary<string, object>)filteredAttrObject).Keys.ToArray();
+
+            for (int i = 0; i < properties.Count(); i++) 
+            {
+                output += $"{properties[i]}{(i + 1 == properties.Count() ? ")" : ", ")}";
+            }
+
+            return output;
+        }
 
     }
 }
