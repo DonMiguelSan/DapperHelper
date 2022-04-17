@@ -1,4 +1,7 @@
 ﻿using Dapper;
+using DapperHelper.Interfaces;
+using DapperHelper.Tools;
+using DapperHelper.Tools.ExtensionMethods;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -88,6 +91,29 @@ namespace DapperHelper.Internal.DataAccess
             using (IDbConnection connection = new SqlConnection(connectionString))
             {
                 _ = connection.Execute(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
+            }
+        }
+
+        /// <summary>
+        /// Executes an <see cref="SqlTransaction"/> depending on the selected <paramref name="command"/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="data"></param>
+        /// <param name="connectionStringName"></param>
+        /// <param name="command"></param>
+        public void ExecuteTransaction<T>(List<T> data, string connectionStringName, SqlCommands command)
+            where T: IDbTableModel
+        {
+            if (data?.Count > 0) 
+            {
+                string connectionString = GetConnectionString(connectionStringName);
+
+                using (IDbConnection connection = new SqlConnection(connectionString))
+                {
+                    IDbTransaction transaction = connection.BeginTransaction();
+
+                    _ = connection.Execute(data.FirstOrDefault().GetQueryStringForSqlTrans(command), data, transaction: transaction);
+                } 
             }
         }
     }

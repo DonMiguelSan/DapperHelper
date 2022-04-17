@@ -88,22 +88,62 @@ namespace DapperHelper.Tools.ExtensionMethods
             return tableModel.GetParameterObject(attributes);
         }
 
+        /// <summary>
+        /// Builds a <see cref="string"/> using the properties marked in the namespace <see cref="Attributes"/> using reflection, if
+        /// <paramref name="isValueString"/> is set to <see langword="true"/>, the model name will be replace by "Values" and will add an
+        /// @ to every marked property in the table model <see cref="IDbTableModel"/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="tableModel"></param>
+        /// <param name="attributes"></param>
+        /// <param name="isValueString"></param>
+        /// <returns>
+        /// A <see cref="string"/>
+        /// </returns>
         public static string GetStringForQuery<T>(this IDbTableModel tableModel, T attributes, bool isValueString = false)
             where T : List<Type>
         {
             object filteredAttrObject = tableModel.GetParameterObject(attributes);
 
-            string output = isValueString?"Values(": $"{nameof(tableModel)}(";
+            string output = isValueString?"Values(": $"{tableModel.GetType().Name}(";
 
             var properties = ((IDictionary<string, object>)filteredAttrObject).Keys.ToArray();
 
             for (int i = 0; i < properties.Count(); i++) 
             {
-                output += $"{properties[i]}{(i + 1 == properties.Count() ? ")" : ", ")}";
+                output += $"{(isValueString ? "@" : "")}{properties[i]}{(i + 1 == properties.Count() ? ")" : ", ")}";
             }
 
             return output;
         }
 
+        /// <summary>
+        /// Builds a <see cref="string"/> using the properties marked in the namespace <see cref="Attributes"/> using reflection, if
+        /// <paramref name="isValueString"/> is set to <see langword="true"/>, the model name will be replace by "Values" and will add an
+        /// @ to every marked property in the table model <see cref="IDbTableModel"/>
+        /// </summary>
+        /// <param name="tableModel"></param>
+        /// <param name="isValueString"></param>
+        /// <returns>
+        /// A <see cref="string"/>
+        /// </returns>
+        public static string GetQueryStringWithUpdatablePar(this IDbTableModel tableModel, bool isValueString = false)
+        {
+            return tableModel.GetStringForQuery(new List<Type>() { typeof(UpdatableParAttribute) }, isValueString);
+
+        }
+        /// <summary>
+        /// Generates a <see cref="string"/> to generate a string to be executed as query for diverse operations contained in <see cref="SqlCommands"/>
+        /// </summary>
+        /// <param name="tableModel"></param>
+        /// <param name="command"></param>
+        /// <returns><
+        /// A <see cref="string"/> containig the generated query
+        /// /returns>
+        public static string GetQueryStringForSqlTrans(this IDbTableModel tableModel, SqlCommands command)
+        {
+            return $"{command}{StringConstants.blankSpace}{tableModel.GetQueryStringWithUpdatablePar()}" +
+                         $"{StringConstants.blankSpace}{tableModel.GetQueryStringWithUpdatablePar(true)}";
+        }
     }
 }

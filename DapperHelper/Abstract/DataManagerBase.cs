@@ -5,6 +5,7 @@ using DapperHelper.Tools;
 using DapperHelper.Tools.ExtensionMethods;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 
 namespace DapperHelper.DataAccess.Abstract
 {
@@ -14,6 +15,20 @@ namespace DapperHelper.DataAccess.Abstract
     /// <typeparam name="T"></typeparam>
     public abstract class DataManagerBase<T> : IDataManager<T> where T : IDbTableModel
     {
+        /// <summary>
+        /// Stores the database name provided by constructor
+        /// </summary>
+        private readonly string connectionStringName;
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="connectionStringName"></param>
+        public DataManagerBase(string connectionStringName)
+        {
+            this.connectionStringName = connectionStringName;   
+        }
+
         /// <summary>
         /// Executes an stored procedure to retrieve all data 
         /// </summary>
@@ -28,7 +43,7 @@ namespace DapperHelper.DataAccess.Abstract
             {
                 SqlDataAccess sql = new SqlDataAccess();
 
-                return sql.LoadData<T, dynamic>(storedProcedure, null, SqlConstants.dataBase);
+                return sql.LoadData<T, dynamic>(storedProcedure, null, connectionStringName);
             }
             catch (Exception ex)
             {
@@ -45,7 +60,28 @@ namespace DapperHelper.DataAccess.Abstract
         {
             SqlDataAccess sqlDataAccess = new SqlDataAccess();
 
-            sqlDataAccess.SaveData(storedProcedure, model, SqlConstants.dataBase);
+            sqlDataAccess.SaveData(storedProcedure, model, connectionStringName);
+        }
+
+        /// <summary>
+        /// Executes an <see cref="SqlTransaction"/> in 
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="tableName"></param>
+        /// <exception cref="Exception"></exception>
+        public virtual void Transaction(List<T> data, SqlCommands operation)
+        {
+            try
+            {
+                SqlDataAccess sql = new SqlDataAccess();
+
+                sql.ExecuteTransaction(data, connectionStringName, operation);
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         /// <summary>
@@ -65,7 +101,7 @@ namespace DapperHelper.DataAccess.Abstract
 
                 var p = new { id };
 
-                var output = sql.LoadData<T, dynamic>(storedProcedure, p, SqlConstants.dataBase);
+                var output = sql.LoadData<T, dynamic>(storedProcedure, p, connectionStringName);
 
                 return output;
             }
@@ -90,7 +126,7 @@ namespace DapperHelper.DataAccess.Abstract
 
                 var parameters = updatedModel.GetParameterObject(id, new List<Type> { typeof(UpdatableParAttribute), typeof(TableIdentityAttribute) });
 
-                _ = sql.ExecuteStoreProcedure<T, dynamic>(storedProcedure, parameters, SqlConstants.dataBase);
+                _ = sql.ExecuteStoreProcedure<T, dynamic>(storedProcedure, parameters, connectionStringName);
 
             }
             catch (Exception ex)
