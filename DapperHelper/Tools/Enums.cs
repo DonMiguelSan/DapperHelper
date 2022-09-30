@@ -1,14 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DapperHelper.Tools
+﻿namespace DapperHelper.Tools
 {
-    public enum SqlCommands:short
+    public enum SqlActions : short
     {
         Insert,
+        InsertFromTable,
         Update,
         Delete,
-        Create
+        Create,
+        Read,
     }
+
+    public enum Filter :short
+    {
+        ByValues,
+        ByType
+    }
+   
 }
