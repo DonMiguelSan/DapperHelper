@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace DapperHelper.Attributes
 {
@@ -6,7 +10,7 @@ namespace DapperHelper.Attributes
     /// <see cref="Attribute"/> to identify an updatable parameter in a stored procedure
     /// </summary>
     [System.AttributeUsage(AttributeTargets.All, Inherited = true, AllowMultiple = true)]
-    public sealed class UpdatableParAttribute : Attribute
+    public sealed class QueryAttribute : Attribute
     {
     }
 }
