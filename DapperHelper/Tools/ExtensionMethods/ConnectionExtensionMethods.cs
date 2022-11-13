@@ -1,11 +1,11 @@
 ﻿using Dapper;
+using DapperHelper.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using DapperHelper.Attributes;
 
 namespace DapperHelper.Tools.ExtensionMethods
 {
@@ -15,18 +15,6 @@ namespace DapperHelper.Tools.ExtensionMethods
     /// </summary>
     public static class ConnectionExtensionMethods
     {
-        /// <summary>
-        /// Gets the connections string from the App.config file
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns>
-        /// A <see cref="string"/> containing the stored connection string from App.config
-        /// </returns>
-        public static string GetConnectionString(string name)
-        {
-            return ConfigurationManager.ConnectionStrings[name].ConnectionString;
-        }
-
         /// <summary>
         /// Execute an stored procedure <paramref name="storedProcedure"/> with input parameters <paramref name="parameters"/>
         /// from a database with the provided connection string <paramref name="connectionStringName"/>
@@ -64,7 +52,7 @@ namespace DapperHelper.Tools.ExtensionMethods
             dbConnection.DropTypeIfExists(typeName);
 
             dbConnection.CreateTableTypeFromModel(typeName, models.First());
-           
+
             List<string> listOfCommands = new List<string>
             {
                 QueryHelpers.cmdInsertInto,
@@ -73,7 +61,7 @@ namespace DapperHelper.Tools.ExtensionMethods
                 QueryHelpers.cmdFrom,
                 "@CustomTable",
             };
-            return dbConnection.Execute(listOfCommands.FormatQuery(), param : new { CustomTable = models.GetDataTable().AsTableValuedParameter(typeName)});
+            return dbConnection.Execute(listOfCommands.FormatQuery(), param: new { CustomTable = models.GetDataTable().AsTableValuedParameter(typeName) });
         }
 
         public static int CreateTableTypeFromModel(this IDbConnection dbConnection, string name, object model)
@@ -85,7 +73,7 @@ namespace DapperHelper.Tools.ExtensionMethods
                 name,
                 QueryHelpers.cmdAsTable,
                 model.GetTypeDefinition()
-                
+
             };
             return dbConnection.Execute(listOfCommands.FormatQuery());
         }
@@ -141,13 +129,19 @@ namespace DapperHelper.Tools.ExtensionMethods
         /// </returns>
         public static int ExecuteStoreProcedure<T>(string storedProcedure, T parameters, string connectionStringName)
         {
-            string connectionString = GetConnectionString(connectionStringName);
+            string connectionString = ConfigManagerHelper.GetConnectionString(connectionStringName);
 
             using (IDbConnection connection = new SqlConnection(connectionString))
             {
                 return connection.Execute(storedProcedure, parameters,
                     commandType: CommandType.StoredProcedure);
             }
+        }
+
+        public static IEnumerable<U> QueryStoreProcedure<T,U>(this IDbConnection connection, string storedProcedure, T parameters, int? timeout = 100)
+        {
+            return connection.Query<U>(storedProcedure, parameters,
+                    commandType: CommandType.StoredProcedure, commandTimeout:timeout);
         }
 
         /// <summary>
@@ -164,7 +158,7 @@ namespace DapperHelper.Tools.ExtensionMethods
         {
             if (data?.Count > 0)
             {
-                string connectionString = GetConnectionString(connectionStringName);
+                string connectionString = ConfigManagerHelper.GetConnectionString(connectionStringName);
 
                 using (IDbConnection connection = new SqlConnection(connectionString))
                 {

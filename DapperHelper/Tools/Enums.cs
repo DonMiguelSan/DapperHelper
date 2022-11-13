@@ -10,10 +10,10 @@
         Read,
     }
 
-    public enum Filter :short
+    public enum Filter : short
     {
         ByValues,
         ByType
     }
-   
+
 }

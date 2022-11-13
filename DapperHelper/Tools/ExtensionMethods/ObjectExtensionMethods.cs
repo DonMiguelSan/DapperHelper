@@ -3,10 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Dynamic;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Web.Routing;
 
 namespace DapperHelper.Tools.ExtensionMethods
 {
@@ -40,21 +38,26 @@ namespace DapperHelper.Tools.ExtensionMethods
 
                         foreach (PropertyInfo proppertyWithAttribute in propertiesWithAttribute)
                         {
+                            CustomAttributeData columNameAttrData = proppertyWithAttribute.CustomAttributes?.FirstOrDefault(x => x.AttributeType == typeof(ColumnNameAttribute));
+
                             if (parameterObject.TryGetValue(proppertyWithAttribute.Name, out _) == false)
                             {
+                                var name = columNameAttrData == null ? proppertyWithAttribute.Name : columNameAttrData.ConstructorArguments.FirstOrDefault().Value.ToString().FormatTableName();
                                 switch (filter)
                                 {
                                     case Filter.ByValues:
-                                        parameterObject.Add(proppertyWithAttribute.Name, model.GetType().GetProperty(proppertyWithAttribute.Name).GetValue(model));
+                                        parameterObject.Add(name, model.GetType().GetProperty(proppertyWithAttribute.Name).GetValue(model));
+
                                         break;
                                     case Filter.ByType:
                                         _ = QueryHelpers.NetToSqlTypes.TryGetValue(model.GetType().GetProperty(proppertyWithAttribute.Name).PropertyType.Name, out string propName);
-                                        parameterObject.Add(proppertyWithAttribute.Name, propName);
+                                        parameterObject.Add(name, propName);
                                         break;
 
                                 }
-                               
+
                             }
+
                         }
                     }
                 }
@@ -65,16 +68,20 @@ namespace DapperHelper.Tools.ExtensionMethods
 
                 foreach (PropertyInfo property in properties)
                 {
+                    CustomAttributeData columNameAttrData = property.CustomAttributes?.FirstOrDefault(x => x.AttributeType == typeof(ColumnNameAttribute));
+
                     if (parameterObject.TryGetValue(property.Name, out _) == false)
                     {
+                        var name = columNameAttrData == null ? property.Name : columNameAttrData.ConstructorArguments.FirstOrDefault().Value.ToString().FormatTableName();
+
                         switch (filter)
                         {
                             case Filter.ByValues:
-                                parameterObject.Add(property.Name, model.GetType().GetProperty(property.Name).GetValue(model));
+                                parameterObject.Add(name, model.GetType().GetProperty(property.Name).GetValue(model));
                                 break;
                             case Filter.ByType:
                                 _ = QueryHelpers.NetToSqlTypes.TryGetValue(model.GetType().GetProperty(property.Name).PropertyType.Name, out string propName);
-                                parameterObject.Add(property.Name, propName);
+                                parameterObject.Add(name, propName);
                                 break;
 
                         }
@@ -129,14 +136,14 @@ namespace DapperHelper.Tools.ExtensionMethods
             for (int i = 0; i < properties.Count(); i++)
             {
                 var valueToBeWritten = properties[i].GetType() == typeof(DateTime) ? ((DateTime)properties[i]).ToString("s") : properties[i];
-                valueToBeWritten = includeDataEncloser ? $"{startDataEncloser}{valueToBeWritten}{endDataEncloser}" : valueToBeWritten;
-                output += $"{valueToBeWritten}{(i + 1 == properties.Count() ? includeGroupEnclocer ? endGroupEncloser : "": dataSeparator)}";
+                valueToBeWritten = includeDataEncloser && valueToBeWritten.ToString().StartsWith(startDataEncloser) == false ? $"{startDataEncloser}{valueToBeWritten}{endDataEncloser}" : valueToBeWritten;
+                output += $"{valueToBeWritten}{(i + 1 == properties.Count() ? includeGroupEnclocer ? endGroupEncloser : "" : dataSeparator)}";
             }
 
             return output;
         }
 
-        public static string GetTypeDefinition(this object model,List<Type> attributes = null)
+        public static string GetTypeDefinition(this object model, List<Type> attributes = null)
         {
             object filteredAttrObject = model.GetParameterObject(attributes, Filter.ByType);
 
@@ -148,7 +155,7 @@ namespace DapperHelper.Tools.ExtensionMethods
             {
 
                 string lastCharacter = i == keyPairValues.Count() - 1 ? "" : ",";
-                output += $"{QueryHelpers.space}{keyPairValues[i].Key}{QueryHelpers.space}{keyPairValues[i].Value}{lastCharacter}"; 
+                output += $"{QueryHelpers.space}{keyPairValues[i].Key}{QueryHelpers.space}{keyPairValues[i].Value}{lastCharacter}";
             }
 
             return $"{output})";
@@ -165,7 +172,7 @@ namespace DapperHelper.Tools.ExtensionMethods
         /// /returns>
         public static string GetQueryStringForSqlTrans(this object tableModel, List<Type> parToBeFilttered = null)
         {
-            string formattedString = tableModel.GetStringForQuery(parToBeFilttered, 
+            string formattedString = tableModel.GetStringForQuery(parToBeFilttered,
                 startHeader: tableModel.GetTableName());
             List<string> queryFiels = new List<string>
             {
@@ -195,7 +202,7 @@ namespace DapperHelper.Tools.ExtensionMethods
 
             if (model is System.Collections.ICollection dataset && dataset?.Count > 0)
             {
-                if(dataset?.Count>0)
+                if (dataset?.Count > 0)
                 {
                     customAttr = dataset.Cast<object>().First().GetType().GetCustomAttributes(typeof(TableNameAttribute), true);
                 }
@@ -221,7 +228,7 @@ namespace DapperHelper.Tools.ExtensionMethods
             {
                 return model.GetType().Name;
             }
-            
+
             return string.Empty;
         }
 
@@ -230,7 +237,7 @@ namespace DapperHelper.Tools.ExtensionMethods
         {
             var property = model.GetType().GetProperties().FirstOrDefault(x => x.GetCustomAttribute(typeof(T)) != null);
 
-            if (property != null) 
+            if (property != null)
             {
                 return property.Name;
             }
@@ -275,7 +282,7 @@ namespace DapperHelper.Tools.ExtensionMethods
             return output;
         }
 
-       
+
 
     }
 }
